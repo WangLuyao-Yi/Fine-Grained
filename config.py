@@ -5,4 +5,4 @@ resume = ''
 save_dir = './ckpt/'
 WD = 1e-4
 end_epoch = 500
-SAVE_FREQ = 1
+SAVE_FREQ = 5

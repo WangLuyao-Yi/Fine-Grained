@@ -36,8 +36,8 @@ test_transform = transforms.Compose([
 train_set = CUB200.CUB(root='./DATA/CUB_200_2011',is_train=True,transform=train_transform,data_len=None)
 train_loader = torch.utils.data.DataLoader(train_set,batch_size=BATCH_SIZE,shuffle=True,num_workers=8,drop_last=False)
 
-test_set = CUB200.CUB(root='./DATA/CUB_200_2011',is_train=False,transform=train_transform,data_len=None)
-test_loader = torch.utils.data.DataLoader(train_set,batch_size=BATCH_SIZE,shuffle=True,num_workers=8,drop_last=False)
+test_set = CUB200.CUB(root='./DATA/CUB_200_2011', is_train=False, transform=train_transform, data_len=None)
+test_loader = torch.utils.data.DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=8, drop_last=False)
 
 #define model
 net = Model.MyNet()
