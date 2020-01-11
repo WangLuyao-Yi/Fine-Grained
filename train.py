@@ -9,6 +9,7 @@ from PIL import Image
 from config import BATCH_SIZE,LR,resume,save_dir,WD,end_epoch,SAVE_FREQ
 from torch.optim.lr_scheduler import MultiStepLR
 from tqdm import tqdm
+from torch.utils.tensorboard import SummaryWriter
 
 
 cuda_flag = torch.cuda.is_available()
@@ -55,6 +56,9 @@ schedulers = MultiStepLR(optimizer, milestones=[60, 100, 160], gamma=0.1)  # LR 
 if cuda_flag:
     net = net.cuda()
     # net = DataParallel(net)
+#tensorboard add 2020-1-11
+write = SummaryWriter("./tensorboard")
+
 
 best_acc = 0.0
 best_epoch = None
@@ -130,6 +134,10 @@ for epoch in range(start_epoch, end_epoch):
         print("epoch:{} - test loss: {:.3f} and test acc: {:.3f} total sample:{}".format(
             epoch,test_loss,test_acc,total
         ))
+
+        write.add_scalars("lOSS",{'train': train_loss, "test": test_loss },epoch)
+        write.add_scalars("Accuracy",{"train": train_acc, "test": test_acc},epoch)
+        write.flush()
         # save model
         if test_acc>best_acc:
             best_acc = test_acc
@@ -145,6 +153,7 @@ for epoch in range(start_epoch, end_epoch):
                 'test_acc': test_acc,
                 'net_state_dict': net_state_dict},
                 os.path.join(save_dir, '%03d.ckpt' % epoch))
+    write.close()
 
 print("Finish training")
 
