@@ -45,22 +45,24 @@ net = Model.MyNet()
 if resume:
     ckpt = torch.load(resume)
     net.load_state_dict(ckpt['net_state_dict'])
-    start_epoch = ckpt['epoch']+1
+    start_epoch = ckpt['epoch'] + 1
 
 criterion = torch.nn.CrossEntropyLoss()
 parameters = list(net.pretrined_model.parameters())
 
-optimizer = torch.optim.SGD(parameters,lr=LR,momentum=0.9,weight_decay=WD)
-schedulers = MultiStepLR(optimizer,milestones=[60,100],gamma=0.1)#LR changes at 60 and 100
+optimizer = torch.optim.SGD(parameters, lr=LR, momentum=0.9, weight_decay=WD)
+schedulers = MultiStepLR(optimizer, milestones=[60, 100, 160], gamma=0.1)  # LR changes at 60 and 100
 if cuda_flag:
     net = net.cuda()
-    #net = DataParallel(net)
-for epoch in range(start_epoch,end_epoch):
+    # net = DataParallel(net)
+
+best_acc = 0.0
+best_epoch = None
+for epoch in range(start_epoch, end_epoch):
     schedulers.step()
-    best_acc = 0.0
-    best_epoch =None
-    #begin training
-    print("--"*50)
+
+    # begin training
+    print("--" * 50)
     net.train()
 
     train_bar = tqdm(train_loader)
@@ -128,8 +130,6 @@ for epoch in range(start_epoch,end_epoch):
         print("epoch:{} - test loss: {:.3f} and test acc: {:.3f} total sample:{}".format(
             epoch,test_loss,test_acc,total
         ))
-
-
         # save model
         if test_acc>best_acc:
             best_acc = test_acc
@@ -145,6 +145,7 @@ for epoch in range(start_epoch,end_epoch):
                 'test_acc': test_acc,
                 'net_state_dict': net_state_dict},
                 os.path.join(save_dir, '%03d.ckpt' % epoch))
+
 print("Finish training")
 
 
