@@ -18,7 +18,6 @@ save_dir = os.path.join(save_dir,datetime.now().strftime('%Y%m%d_%H%M%S'))
 if os.path.exists(save_dir):
     raise NameError('model dir exists!')
 os.makedirs(save_dir)
-transforms.RandomHorizontalFlip(),
 
 # read data
 train_transform = transforms.Compose([
