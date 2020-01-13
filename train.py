@@ -4,17 +4,17 @@ from torch.nn import DataParallel
 from datetime import datetime
 import torchvision.transforms as transforms
 from dataset import CUB200
-import  Model
+import Model
 from PIL import Image
-from config import BATCH_SIZE,LR,resume,save_dir,WD,end_epoch,SAVE_FREQ
+from config import BATCH_SIZE, LR, resume, save_dir, WD, end_epoch, SAVE_FREQ, tesorboard_dir
 from torch.optim.lr_scheduler import MultiStepLR
 from tqdm import tqdm
-from torch.utils.tensorboard import SummaryWriter
 
+from torch.utils.tensorboard import SummaryWriter
 
 cuda_flag = torch.cuda.is_available()
 start_epoch = 1
-save_dir = os.path.join(save_dir,datetime.now().strftime('%Y%m%d_%H%M%S'))
+save_dir = os.path.join(save_dir, datetime.now().strftime('%Y%m%d_%H%M%S'))
 if os.path.exists(save_dir):
     raise NameError('model dir exists!')
 os.makedirs(save_dir)
@@ -33,14 +33,19 @@ test_transform = transforms.Compose([
     transforms.ToTensor(),  # turn a PIL.Image [0,255] shape(H,W,C) into [0,1.0] shape(C,H,W) torch.FloatTensor
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
-train_set = CUB200.CUB(root='./DATA/CUB_200_2011',is_train=True,transform=train_transform,data_len=None)
-train_loader = torch.utils.data.DataLoader(train_set,batch_size=BATCH_SIZE,shuffle=True,num_workers=8,drop_last=False)
+train_set = CUB200.CUB(root='./DATA/CUB_200_2011', is_train=True, transform=train_transform, data_len=None)
+train_loader = torch.utils.data.DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=8,
+                                           drop_last=False)
 
 test_set = CUB200.CUB(root='./DATA/CUB_200_2011', is_train=False, transform=train_transform, data_len=None)
 test_loader = torch.utils.data.DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=8, drop_last=False)
 
-#define model
-net = Model.MyNet()
+# define model
+net = Model.GAPNet()  # Model.MyNet()
+
+write = SummaryWriter(tesorboard_dir)
+images = torch.zeros((BATCH_SIZE, 3, 448, 448))
+write.add_graph(net, (images,))
 
 if resume:
     ckpt = torch.load(resume)
@@ -56,7 +61,6 @@ if cuda_flag:
     net = net.cuda()
     # net = DataParallel(net)
 #tensorboard add 2020-1-11
-write = SummaryWriter("./tensorboard")
 
 
 best_acc = 0.0
@@ -72,9 +76,10 @@ for epoch in range(start_epoch, end_epoch):
 
     for data in train_bar:
         train_bar.set_description("epoch %d :Training " % epoch)
-        img, label =data[0], data[1]
+        img, label = data[0], data[1]
         if cuda_flag:
             img, label = img.cuda(), label.cuda()
+
         batch_size = img.size(0)
         optimizer.zero_grad()
         target = net(img)
@@ -136,7 +141,6 @@ for epoch in range(start_epoch, end_epoch):
 
         write.add_scalars("lOSS",{'train': train_loss, "test": test_loss },epoch)
         write.add_scalars("Accuracy",{"train": train_acc, "test": test_acc},epoch)
-        write.flush()
         # save model
         if test_acc>best_acc:
             best_acc = test_acc
@@ -152,11 +156,5 @@ for epoch in range(start_epoch, end_epoch):
                 'test_acc': test_acc,
                 'net_state_dict': net_state_dict},
                 os.path.join(save_dir, '%03d.ckpt' % epoch))
-    write.close()
-
+write.close()
 print("Finish training")
-
-
-
-
-
