@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch.autograd import variable
 import Resnet
 from config import class_num
-import numpy as np
+
 
 
 class MyNet(nn.Module):
@@ -29,7 +29,7 @@ class GAPNet(nn.Module):
         self.maxpool = nn.AdaptiveMaxPool2d(1)
         # self.pretrined_model.avgpool = nn.AdaptiveMaxPool2d(1)
         # self.pretrined_model.fc = nn.Linear(512*4, class_num)
-        self.fc = nn.Linear(2*200, class_num)
+        self.cat_fc = nn.Linear(200 * 2, class_num)
 
 
     def forward(self, x):
@@ -40,9 +40,11 @@ class GAPNet(nn.Module):
         max1 = self.conv_max_1(x)
         max1 = self.maxpool(max1)
         max1 = max1.squeeze()
-        c = torch.cat((avg1,max1),1)
-        predict = self.fc(c)
-        return avg1,max1,predict
+        c = torch.cat((avg1, max1), dim=1)
+        predict = self.cat_fc(c)
+        return avg1, max1, predict
+
+
 def metric_loss(predict,target):
     batch = predict.size(0)
     loss = torch.norm((predict-target).abs(),p=2,dim=1).sum()/float(batch)
