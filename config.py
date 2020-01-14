@@ -7,4 +7,4 @@ WD = 1e-4
 end_epoch = 200
 SAVE_FREQ = 5
 class_num = 200
-tesorboard_dir = './tensorboard_meric_Net'
+tesorboard_dir = './tensorboard_meric_Net5.0'

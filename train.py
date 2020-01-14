@@ -86,8 +86,8 @@ for epoch in range(start_epoch, end_epoch):
         avg1_loss = criterion(avg1,label)
         max1_loss = criterion(max1,label)
         concat_loss = criterion(target,label)
-        metric_loss = Model.metric_loss(avg1,max1)
-        loss = avg1_loss+max1_loss+concat_loss+metric_loss
+        metric_loss = Model.metric_loss(avg1, max1)
+        loss = avg1_loss + max1_loss + concat_loss + 5.0 * metric_loss
         loss.backward()
         optimizer.step()
 
