@@ -82,8 +82,12 @@ for epoch in range(start_epoch, end_epoch):
 
         batch_size = img.size(0)
         optimizer.zero_grad()
-        target = net(img)
-        loss = criterion(target,label)
+        avg1,max1,target = net(img)
+        avg1_loss = criterion(avg1,label)
+        max1_loss = criterion(max1,label)
+        concat_loss = criterion(target,label)
+        metric_loss = Model.metric_loss(avg1,max1)
+        loss = avg1_loss+max1_loss+concat_loss+metric_loss
         loss.backward()
         optimizer.step()
 
@@ -91,6 +95,10 @@ for epoch in range(start_epoch, end_epoch):
         train_loss = 0
         train_correct = 0
         total = 0
+        train_avg_loss = 0
+        train_max_loss = 0
+        train_concat_loss = 0
+        train_metric_loss = 0
         net.eval()
         train_bar = tqdm(train_loader)
         for data in train_bar:
@@ -100,23 +108,44 @@ for epoch in range(start_epoch, end_epoch):
                 if cuda_flag:
                     img, label = img.cuda(), label.cuda()
                 batch_size = img.size(0)
-                target = net(img)
-                #calculate loss
-                loss = criterion(target, label)
+                avg1, max1, target = net(img)
+                avg1_loss = criterion(avg1, label)
+                max1_loss = criterion(max1, label)
+                concat_loss = criterion(target, label)
+                metric_loss = Model.metric_loss(avg1, max1)
+                loss = avg1_loss + max1_loss + concat_loss + metric_loss
+
+
+                # target = net(img)
+                # #calculate loss
+                # loss = criterion(target, label)
                 _,predict = torch.max(target,1)
                 total += batch_size
                 train_correct += torch.sum(predict.data == label.data)
                 train_loss += loss.item()*batch_size
+                train_avg_loss += avg1_loss.item()*batch_size
+                train_max_loss += max1_loss.item() * batch_size
+                train_concat_loss += concat_loss.item()*batch_size
+                train_metric_loss += metric_loss.item()*batch_size
         train_acc = float(train_correct)/total
         train_loss = train_loss/total
+        train_avg_loss = train_avg_loss/total
+        train_max_loss = train_max_loss/total
+        train_concat_loss = train_concat_loss/total
+        train_metric_loss = train_metric_loss/total
         print("epoch:{} - train loss: {:.3f} and train acc: {:.3f} total sample:{}".format(
             epoch, train_loss, train_acc, total
         ))
 
         #evaluate on test
+        test_avg_loss = 0
+        test_max_loss = 0
+        test_concat_loss = 0
+        test_metric_loss = 0
         test_loss = 0
         test_correct = 0
         total = 0
+
         test_bar = tqdm(test_loader)
         for data in test_bar:
             test_bar.set_description("epoch %d: Testing eval" % epoch)
@@ -125,22 +154,40 @@ for epoch in range(start_epoch, end_epoch):
                 if cuda_flag:
                     img, label = img.cuda(), label.cuda()
                 batch_size = img.size(0)
-                target = net(img)
+                # target = net(img)
+                avg1, max1, target = net(img)
                 #calculate loss
-                loss =criterion(target,label)
+                avg1_loss = criterion(avg1, label)
+                max1_loss = criterion(max1, label)
+                concat_loss = criterion(target, label)
+                metric_loss = Model.metric_loss(avg1, max1)
+                loss = avg1_loss + max1_loss + concat_loss + metric_loss
                 #calculate accuracy
                 _,predict = torch.max(target,1)
                 total += batch_size
                 test_correct += torch.sum(predict.data == label.data)
                 test_loss += loss.item()*batch_size
+                test_avg_loss += avg1_loss.item() * batch_size
+                test_max_loss += max1_loss.item() * batch_size
+                test_concat_loss += concat_loss.item() * batch_size
+                test_metric_loss += metric_loss.item() * batch_size
         test_acc = float(test_correct) / total
         test_loss = test_loss / total
+        test_avg_loss = test_avg_loss / total
+        test_max_loss = test_max_loss / total
+        test_concat_loss = test_concat_loss / total
+        test_metric_loss = test_metric_loss / total
         print("epoch:{} - test loss: {:.3f} and test acc: {:.3f} total sample:{}".format(
             epoch,test_loss,test_acc,total
         ))
 
         write.add_scalars("lOSS",{'train': train_loss, "test": test_loss },epoch)
+        write.add_scalars("AVG_loss", {'train': train_avg_loss, "test": test_avg_loss}, epoch)
+        write.add_scalars("MAX_loss", {'train': train_max_loss, "test": test_max_loss}, epoch)
+        write.add_scalars("Cat_loss", {'train': train_concat_loss, "test": test_concat_loss}, epoch)
+        write.add_scalars("Metric_loss", {'train': train_metric_loss, "test": test_metric_loss}, epoch)
         write.add_scalars("Accuracy",{"train": train_acc, "test": test_acc},epoch)
+
         # save model
         if test_acc>best_acc:
             best_acc = test_acc
