@@ -113,7 +113,7 @@ for epoch in range(start_epoch, end_epoch):
                 max1_loss = criterion(max1, label)
                 concat_loss = criterion(target, label)
                 metric_loss = Model.metric_loss(avg1, max1)
-                loss = avg1_loss + max1_loss + concat_loss + metric_loss
+                loss = avg1_loss + max1_loss + concat_loss + 5.0 * metric_loss
 
 
                 # target = net(img)
@@ -131,8 +131,8 @@ for epoch in range(start_epoch, end_epoch):
         train_loss = train_loss/total
         train_avg_loss = train_avg_loss/total
         train_max_loss = train_max_loss/total
-        train_concat_loss = train_concat_loss/total
-        train_metric_loss = train_metric_loss/total
+        train_concat_loss = train_concat_loss / total
+        train_metric_loss = 5.0 * train_metric_loss / total
         print("epoch:{} - train loss: {:.3f} and train acc: {:.3f} total sample:{}".format(
             epoch, train_loss, train_acc, total
         ))
@@ -161,7 +161,7 @@ for epoch in range(start_epoch, end_epoch):
                 max1_loss = criterion(max1, label)
                 concat_loss = criterion(target, label)
                 metric_loss = Model.metric_loss(avg1, max1)
-                loss = avg1_loss + max1_loss + concat_loss + metric_loss
+                loss = avg1_loss + max1_loss + concat_loss + 5.0 * metric_loss
                 #calculate accuracy
                 _,predict = torch.max(target,1)
                 total += batch_size
@@ -176,7 +176,7 @@ for epoch in range(start_epoch, end_epoch):
         test_avg_loss = test_avg_loss / total
         test_max_loss = test_max_loss / total
         test_concat_loss = test_concat_loss / total
-        test_metric_loss = test_metric_loss / total
+        test_metric_loss = 5.0 * test_metric_loss / total
         print("epoch:{} - test loss: {:.3f} and test acc: {:.3f} total sample:{}".format(
             epoch,test_loss,test_acc,total
         ))
