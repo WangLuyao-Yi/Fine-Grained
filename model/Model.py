@@ -47,6 +47,7 @@ class GAPNet(nn.Module):
 
 def metric_loss(predict,target):
     batch = predict.size(0)
-    loss = torch.norm((predict-target).abs(),p=2,dim=1).sum()/float(batch)
+    predict = nn.functional.softmax(predict, 1)
+    target = nn.functional.softmax(target, 1)
+    loss = torch.norm((predict - target).abs(), p=2, dim=1).sum() / float(batch)
     return loss
-
