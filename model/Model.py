@@ -36,10 +36,10 @@ class GAPNet(nn.Module):
         x = self.pretrined_model(x)  # return final class, feature before pooling, features after pooling
         avg1 = self.conv_avg_1(x)
         avg1 = self.avgpool(avg1)
-        avg1 = avg1.squeeze()
+        avg1 = avg1.view(-1, 200)
         max1 = self.conv_max_1(x)
         max1 = self.maxpool(max1)
-        max1 = max1.squeeze()
+        max1 = max1.view(-1, 200)
         c = torch.cat((avg1, max1), dim=1)
         predict = self.cat_fc(c)
         return avg1, max1, predict
