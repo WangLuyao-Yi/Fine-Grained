@@ -8,17 +8,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 
-IMG_URL = "./../DATA/test/"
-resume = "/home/luyaowan/Data/pycharmprojects/Fine-Grained-master/ckpt/metric_Net/005.ckpt"
+IMG_URL = "/home/luyaowan/Data/pycharmprojects/Fine-Grained-master/DATA/Test_image/017_Cardinal_0022_17233.jpg"
+resume = "/home/luyaowan/Data/pycharmprojects/Fine-Grained-master/ckpt/metric_Net/095.ckpt"
 
-#load model
+# load model
 net = Model.GAPNet()
 net = net.cuda()
 ckpt = torch.load(resume)
 net.load_state_dict(ckpt['net_state_dict'])
 net.eval()
 
-#hook the feature extractor: extracte the last layer feature of resnet
+# hook the feature extractor: extracte the last layer feature of resnet
 features_blobs = []
 def hook_feature(module, input, output):
     features_blobs.append(input[0].data.cpu().numpy())
@@ -59,6 +59,7 @@ def get_test_sample_from_test():
     ori_img = transforms.ToPILImage()(ori_img)
     # plt.imshow(ori_img)
     # plt.show()
+    ori_img.save("test.jpg")
     img = img.squeeze()
     img = test_transform(img)
     img, label = img.cuda(), label.cuda()
@@ -66,18 +67,31 @@ def get_test_sample_from_test():
     width, height = ori_img.size
     ori_img = np.array(ori_img)
     return img, height, width, ori_img
+
+
 def get_test_image(img_url):
-    process = transforms.Compose(
-        transforms.resize((448,448)),
+    process = transforms.Compose([
+        transforms.Resize((448, 448), Image.BILINEAR),
         transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    )
-    img = Image.open(img_url)
-    img.save('test.jpg')
-    img =process(img)
-    height, width, _ = img.shape
-    return img, height, width, img
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+    ori_img = Image.open(img_url)
+    ori_img.save('test.jpg')
+    img = process(ori_img)
+    width, height = ori_img.size
+    ori_img = np.array(ori_img)
+    img = img.unsqueeze(0)
+
+    return img, height, width, ori_img
+
+
 img, height, width, ori_img = get_test_image(IMG_URL)
+# img, height, width, ori_img = get_test_sample_from_test()
+print(img.shape)
+print(ori_img.shape)
+
+img = img.cuda()
+
 avg1_logit, max1_logit, predict_logit = net(img)
 
 avg_x = F.softmax(avg1_logit, dim=1).data.squeeze()
