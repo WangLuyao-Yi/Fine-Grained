@@ -8,8 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 
-IMG_URL = "/home/luyaowan/Data/pycharmprojects/Fine-Grained-master/DATA/Test_image/017_Cardinal_0022_17233.jpg"
-resume = "/home/luyaowan/Data/pycharmprojects/Fine-Grained-master/ckpt/metric_Net/095.ckpt"
+IMG_URL = "/home/luyaowan/Data/pycharmprojects/Fine-Grained-master/DATA/Test_image/188_Pileated_Woodpecker_0097_180392.jpg"
+resume = "/home/luyaowan/Data/pycharmprojects/Fine-Grained-master/ckpt/metric_Net5/095.ckpt"
 
 # load model
 net = Model.GAPNet()

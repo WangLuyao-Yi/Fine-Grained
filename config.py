@@ -1,4 +1,4 @@
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 INPUT_SIZE = 448
 LR = 0.001
 resume = ''
@@ -7,4 +7,4 @@ WD = 1e-4
 end_epoch = 200
 SAVE_FREQ = 5
 class_num = 200
-tesorboard_dir = './tensorboard_meric_Net5.0'
+tesorboard_dir = './tensorboard_res50'
