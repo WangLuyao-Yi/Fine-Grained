@@ -13,7 +13,6 @@ from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 
 cuda_flag = torch.cuda.is_available()
-start_epoch = 1
 save_dir = os.path.join(save_dir, datetime.now().strftime('%Y%m%d_%H%M%S'))
 if os.path.exists(save_dir):
     raise NameError('model dir exists!')
@@ -43,50 +42,51 @@ test_loader = torch.utils.data.DataLoader(test_set, batch_size=BATCH_SIZE, shuff
 # define model
 net = Model.MyNet()
 
-write = SummaryWriter(tesorboard_dir)
-images = torch.zeros((BATCH_SIZE, 3, 448, 448))
-write.add_graph(net, (images,))
-
 if resume:
     ckpt = torch.load(resume)
     net.load_state_dict(ckpt['net_state_dict'])
     start_epoch = ckpt['epoch'] + 1
+    best_acc = ckpt['test_acc']
+    best_epoch = ckpt['epoch']
+else:
+    best_acc = 0.0
+    start_epoch = 1
+    best_epoch = None
 
 criterion = torch.nn.CrossEntropyLoss()
+
+#  frozen feature extracte layer
+for name, param in net.named_parameters():
+    # print(name,':',param.requires_grad)
+    param.requires_grad = True
+    # if name == "pretrined_model.fc.weight" or name == "pretrined_model.fc.bias":
+    #     param.requires_grad = False
+
 parameters = list(net.pretrined_model.parameters())
 
-optimizer = torch.optim.SGD(parameters, lr=LR, momentum=0.9, weight_decay=WD)
-schedulers = MultiStepLR(optimizer, milestones=[60, 100, 160], gamma=0.1)  # LR changes at 60 and 100
+# for i in parameters:
+#     print(i.requires_grad)
+
+optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, parameters), lr=LR, momentum=0.9, weight_decay=WD)
+schedulers = MultiStepLR(optimizer, milestones=[20, 75], gamma=0.1)  # LR changes at 60 and 100
+
 if cuda_flag:
     net = net.cuda()
     # net = DataParallel(net)
 # tensorboard add 2020-1-11
+write = SummaryWriter(tesorboard_dir)
+images = torch.zeros((BATCH_SIZE, 3, 448, 448))
+images = images.cuda()
+write.add_graph(net, (images,))
 
-
-best_acc = 0.0
-best_epoch = None
-for epoch in range(start_epoch, end_epoch):
+for epoch in range(start_epoch, end_epoch + 1):
     schedulers.step()
+    print(schedulers.get_lr())
 
     # begin training
-    print("--" * 50)
     net.train()
 
     train_bar = tqdm(train_loader)
-    #  frozen feature extracte layer
-    if epoch <= 30:
-        for name, param in net.named_parameters():
-            # print(name,':',param.requires_grad)
-            param.requires_grad = False
-            if name == "pretrined_model.fc.weight" or name == "pretrined_model.fc.bias":
-                param.requires_grad = True
-    elif epoch > 30 and epoch <= 60:
-        for param in net.parameters():
-            param.requires_grad = True
-            if name == "pretrined_model.fc.weight" or name == "pretrined_model.fc.bias":
-                param.requires_grad = False
-    else:
-        param.requires_grad = True
 
     for data in train_bar:
         train_bar.set_description("epoch %d :Training " % epoch)

@@ -14,7 +14,7 @@ class MyNet(nn.Module):
         self.pretrined_model.avgpool = nn.AdaptiveAvgPool2d(1)
         self.pretrined_model.fc = nn.Linear(512 * 4, class_num)
         # Initialize the fc layers
-        torch.nn.init.xavier_normal_(self.pretrined_model.fc.data)
+        torch.nn.init.xavier_normal_(self.pretrined_model.fc.weight.data)
         if self.pretrined_model.fc.bias is not None:
             torch.nn.init.constant_(self.pretrined_model.fc.bias.data, val=0)
 
