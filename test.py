@@ -10,20 +10,20 @@ from tqdm import tqdm
 import argparse
 
 if __name__ == '__main__':
-    load_ckpt = "/home/luyaowan/Data/pycharmprojects/Fine-Grained-master/ckpt/20200118_205747/185.ckpt"
+    load_ckpt = "/home/luyaowan/Data/pycharmprojects/Fine-Grained/ckpt/20200119_214728/069.ckpt"
     cuda_flag = torch.cuda.is_available()
-    # test_transform = transforms.Compose([
-    #     transforms.Resize((600, 600), Image.BILINEAR),
-    #     transforms.RandomCrop(size=448),
-    #     transforms.ToTensor(),  # turn a PIL.Image [0,255] shape(H,W,C) into [0,1.0] shape(C,H,W) torch.FloatTensor
-    #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    # ])
     test_transform = transforms.Compose([
-        transforms.Resize((448, 448), Image.BILINEAR),
+        transforms.Resize((600, 600), Image.BILINEAR),
         transforms.RandomCrop(size=448),
         transforms.ToTensor(),  # turn a PIL.Image [0,255] shape(H,W,C) into [0,1.0] shape(C,H,W) torch.FloatTensor
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
+    # test_transform = transforms.Compose([
+    #     transforms.Resize((448, 448), Image.BILINEAR),
+    #     transforms.RandomCrop(size=448),
+    #     transforms.ToTensor(),  # turn a PIL.Image [0,255] shape(H,W,C) into [0,1.0] shape(C,H,W) torch.FloatTensor
+    #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    # ])
     test_set = CUB200.CUB(root='./DATA/CUB_200_2011', is_train=False, transform=test_transform, data_len=None)
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=8,
                                               drop_last=False, pin_memory=True)
@@ -86,9 +86,9 @@ if __name__ == '__main__':
         print("test3 acc: {:.3f} total sample:{}".format(
             test_acc3, total
         ))
-        print("test3 acc: {:.3f} total sample:{}".format(
+        print("test4 acc: {:.3f} total sample:{}".format(
             test_acc4, total
         ))
-        print("test3 acc: {:.3f} total sample:{}".format(
+        print("test5 acc: {:.3f} total sample:{}".format(
             test_acc5, total
         ))
